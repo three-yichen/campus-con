@@ -48,8 +48,23 @@ const TITLE_RULES = [
   { min: 95, title: "校园传说" }
 ];
 
+const TAG_RULES = [
+  { tag: "ddl追逐者", items: ["通宵赶 ddl", "期末周复习", "小组作业"], minScore: 7 },
+  { tag: "图书馆游民", items: ["图书馆自习", "写论文", "课程展示/汇报"], minScore: 7 },
+  { tag: "绩点焦虑体", items: ["绩点焦虑", "奖学金申请", "考研/保研焦虑"], minScore: 7 },
+  { tag: "校园活动家", items: ["社团活动", "学生会/组织工作", "讲座签到"], minScore: 7 },
+  { tag: "青春叙事主角", items: ["宿舍夜聊", "校园恋爱", "操场散步"], minScore: 7 },
+  { tag: "生存技能点满", items: ["校医院", "校园卡丢失", "打印店救命", "外卖进校"], minScore: 9 },
+  { tag: "卷王预备役", items: ["参加竞赛", "实习", "奖学金申请"], minScore: 7 }
+];
+
 const STORAGE_KEY = "campus-conquest-state";
 const FOOTER_TEXT = "不是所有人都能绩点制霸，但每个人都可以期末周幸存。";
+const DEFAULT_PERSONALITY_TAG = "普通大学生";
+const DOMINATED_LEVEL = 3;
+const MAX_DOMINATED_ITEMS = 8;
+const MAX_PERSONALITY_TAGS = 3;
+const EMPTY_DOMINATED_TEXT = "还在新手村探索中";
 const MAX_LEVEL = Math.max(...LEVELS.map((level) => level.value));
 const MAX_SCORE = ITEMS.length * MAX_LEVEL;
 
@@ -93,23 +108,124 @@ function renderItems() {
 }
 
 function updateResult() {
+  const result = getCurrentResult();
+
+  document.getElementById("scoreValue").textContent = result.totalScore;
+  document.getElementById("maxScoreValue").textContent = MAX_SCORE;
+  document.getElementById("checkedValue").textContent = `${result.checkedCount}/${ITEMS.length}`;
+  document.getElementById("rateValue").textContent = `${result.rate}%`;
+  document.getElementById("titleValue").textContent = result.title;
+  document.getElementById("progressFill").style.width = `${result.rate}%`;
+  updateShareCard();
+}
+
+function getCurrentResult() {
   const totalScore = selectedLevels.reduce((sum, value) => sum + value, 0);
   const rate = MAX_SCORE === 0 ? 0 : Math.round((totalScore / MAX_SCORE) * 100);
   const checkedCount = selectedLevels.filter((value) => value > 0).length;
-  const title = getTitleByRate(rate);
 
-  document.getElementById("scoreValue").textContent = totalScore;
-  document.getElementById("maxScoreValue").textContent = MAX_SCORE;
-  document.getElementById("checkedValue").textContent = `${checkedCount}/${ITEMS.length}`;
-  document.getElementById("rateValue").textContent = `${rate}%`;
-  document.getElementById("titleValue").textContent = title;
-  document.getElementById("progressFill").style.width = `${rate}%`;
+  return {
+    totalScore,
+    rate,
+    checkedCount,
+    title: getTitleByRate(rate)
+  };
 }
 
 function getTitleByRate(rate) {
   return TITLE_RULES.reduce((matchedTitle, rule) => {
     return rate >= rule.min ? rule.title : matchedTitle;
   }, TITLE_RULES[0].title);
+}
+
+function getPersonalityTags() {
+  return TAG_RULES.map((rule, index) => {
+    const score = rule.items.reduce((sum, item) => {
+      const itemIndex = ITEMS.indexOf(item);
+      return sum + (itemIndex === -1 ? 0 : selectedLevels[itemIndex]);
+    }, 0);
+
+    return {
+      tag: rule.tag,
+      score,
+      index,
+      minScore: rule.minScore
+    };
+  })
+    .filter((matchedRule) => matchedRule.score >= matchedRule.minScore)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, MAX_PERSONALITY_TAGS)
+    .map((matchedRule) => matchedRule.tag);
+}
+
+function getDominatedItems(limit = MAX_DOMINATED_ITEMS) {
+  return ITEMS.filter((_, index) => selectedLevels[index] >= DOMINATED_LEVEL)
+    .slice(0, limit);
+}
+
+function getDominatedItemsText() {
+  const dominatedItems = getDominatedItems();
+
+  if (dominatedItems.length === 0) {
+    return EMPTY_DOMINATED_TEXT;
+  }
+
+  const dominatedCount = selectedLevels.filter((value) => value >= DOMINATED_LEVEL).length;
+  const suffix = dominatedCount > MAX_DOMINATED_ITEMS ? "……" : "";
+
+  return `${dominatedItems.join("、")}${suffix}`;
+}
+
+function getPersonalityTagsText() {
+  const tags = getPersonalityTags();
+  return tags.length > 0 ? tags.join(" / ") : DEFAULT_PERSONALITY_TAG;
+}
+
+function updateShareCard() {
+  const shareCardRate = document.getElementById("shareCardRate");
+  const shareCardTitle = document.getElementById("shareCardTitle");
+  const shareCardTags = document.getElementById("shareCardTags");
+  const shareCardItems = document.getElementById("shareCardItems");
+  const shareCardItemsMore = document.getElementById("shareCardItemsMore");
+
+  if (!shareCardRate || !shareCardTitle || !shareCardTags || !shareCardItems || !shareCardItemsMore) {
+    return;
+  }
+
+  const result = getCurrentResult();
+  const tags = getPersonalityTags();
+  const displayTags = tags.length > 0 ? tags : [DEFAULT_PERSONALITY_TAG];
+  const dominatedItems = getDominatedItems();
+  const dominatedCount = selectedLevels.filter((value) => value >= DOMINATED_LEVEL).length;
+
+  shareCardRate.textContent = `${result.rate}%`;
+  shareCardTitle.textContent = result.title;
+  shareCardTags.innerHTML = "";
+  shareCardItems.innerHTML = "";
+
+  displayTags.forEach((tag) => {
+    const tagElement = document.createElement("span");
+    tagElement.className = "share-tag";
+    tagElement.textContent = tag;
+    shareCardTags.appendChild(tagElement);
+  });
+
+  if (dominatedItems.length === 0) {
+    const emptyItem = document.createElement("li");
+    emptyItem.className = "share-items-list__empty";
+    emptyItem.textContent = EMPTY_DOMINATED_TEXT;
+    shareCardItems.appendChild(emptyItem);
+  } else {
+    dominatedItems.forEach((item) => {
+      const itemElement = document.createElement("li");
+      itemElement.textContent = item;
+      shareCardItems.appendChild(itemElement);
+    });
+  }
+
+  shareCardItemsMore.textContent = dominatedCount > MAX_DOMINATED_ITEMS
+    ? `还有 ${dominatedCount - MAX_DOMINATED_ITEMS} 项也已制霸`
+    : "";
 }
 
 function saveState() {
@@ -154,7 +270,7 @@ function resetState() {
 function copyShareText() {
   const rate = document.getElementById("rateValue").textContent;
   const title = document.getElementById("titleValue").textContent;
-  const shareText = `我的大学生制霸率是 ${rate}，称号是「${title}」。\n${FOOTER_TEXT}`;
+  const shareText = `我的大学生制霸率是 ${rate}，称号是「${title}」。\n我的大学人格：${getPersonalityTagsText()}\n已制霸项目：${getDominatedItemsText()}\n${FOOTER_TEXT}`;
 
   if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
     navigator.clipboard.writeText(shareText)

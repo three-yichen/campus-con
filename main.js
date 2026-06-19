@@ -142,6 +142,7 @@ function updateResult() {
   document.getElementById("progressFill").style.width = `${result.rate}%`;
   updateMapAreas();
   updateShareCard();
+  updateShareMiniMap();
 }
 
 function getCurrentResult() {
@@ -247,6 +248,33 @@ function getAreaStats() {
   });
 }
 
+function getItemState(item) {
+  const itemIndex = ITEMS.indexOf(item);
+  const level = itemIndex === -1 ? 0 : selectedLevels[itemIndex];
+
+  if (level <= 0) {
+    return {
+      level: 0,
+      state: "locked",
+      label: "未点亮"
+    };
+  }
+
+  if (level <= 2) {
+    return {
+      level,
+      state: "explored",
+      label: "已探索"
+    };
+  }
+
+  return {
+    level,
+    state: "dominated",
+    label: "已制霸"
+  };
+}
+
 function getStrongestArea() {
   const areaStats = getAreaStats();
   const strongestArea = areaStats.reduce((bestArea, area) => {
@@ -280,13 +308,12 @@ function renderMapAreas() {
   }
 
   mapAreas.innerHTML = getAreaStats().map((area) => {
-    const itemTags = area.items.map((item) => `<li>${item}</li>`).join("");
+    const itemNodes = renderMapItemNodes(area.items);
 
     return `
-      <article class="map-area-card map-area-card--${area.index + 1}" data-area-index="${area.index}">
+      <article class="map-area-card map-area-card--${area.index + 1}" data-area-index="${area.index}" data-state="${area.status}">
         <div class="map-area-card__path" aria-hidden="true">
           <span class="map-area-card__step">${String(area.index + 1).padStart(2, "0")}</span>
-          <span class="map-area-card__arrow">→</span>
         </div>
         <div class="map-area-card__head">
           <div>
@@ -305,8 +332,15 @@ function renderMapAreas() {
             <dd id="mapAreaChecked${area.index}">${area.clearedCount}/${area.items.length}</dd>
           </div>
         </dl>
-        <ul class="map-area-card__items">
-          ${itemTags}
+        <div class="map-area-card__progress" aria-hidden="true">
+          <div class="map-area-card__progress-fill" id="mapAreaProgress${area.index}" style="width: ${area.rate}%"></div>
+        </div>
+        <div class="map-area-card__items-meta">
+          <span>项目点亮</span>
+          <span id="mapAreaNodeSummary${area.index}">${getAreaNodeSummary(area)}</span>
+        </div>
+        <ul class="map-area-card__items" id="mapAreaItems${area.index}">
+          ${itemNodes}
         </ul>
       </article>
     `;
@@ -319,8 +353,11 @@ function updateMapAreas() {
     const rateElement = document.getElementById(`mapAreaRate${area.index}`);
     const checkedElement = document.getElementById(`mapAreaChecked${area.index}`);
     const statusElement = document.getElementById(`mapAreaStatus${area.index}`);
+    const progressElement = document.getElementById(`mapAreaProgress${area.index}`);
+    const itemsElement = document.getElementById(`mapAreaItems${area.index}`);
+    const summaryElement = document.getElementById(`mapAreaNodeSummary${area.index}`);
 
-    if (!areaCard || !rateElement || !checkedElement || !statusElement) {
+    if (!areaCard || !rateElement || !checkedElement || !statusElement || !progressElement || !itemsElement || !summaryElement) {
       return;
     }
 
@@ -328,6 +365,9 @@ function updateMapAreas() {
     rateElement.textContent = `${area.rate}%`;
     checkedElement.textContent = `${area.clearedCount}/${area.items.length}`;
     statusElement.textContent = area.status;
+    progressElement.style.width = `${area.rate}%`;
+    summaryElement.textContent = getAreaNodeSummary(area);
+    itemsElement.innerHTML = renderMapItemNodes(area.items);
   });
 }
 
@@ -381,6 +421,63 @@ function updateShareCard() {
   shareCardItemsMore.textContent = dominatedCount > MAX_DOMINATED_ITEMS
     ? `还有 ${dominatedCount - MAX_DOMINATED_ITEMS} 项也已制霸`
     : "";
+}
+
+function renderMapItemNodes(items) {
+  return items.map((item) => {
+    const itemState = getItemState(item);
+
+    return `
+      <li class="map-item-node map-item-node--${itemState.state}" title="${item} · ${itemState.label} · Lv.${itemState.level}">
+        <span class="map-item-node__dot" aria-hidden="true"></span>
+        <span class="map-item-node__name">${item}</span>
+        <span class="map-item-node__level">Lv.${itemState.level}</span>
+      </li>
+    `;
+  }).join("");
+}
+
+function getAreaNodeSummary(area) {
+  const summary = area.items.reduce((counts, item) => {
+    const itemState = getItemState(item);
+    counts[itemState.state] += 1;
+    return counts;
+  }, { locked: 0, explored: 0, dominated: 0 });
+
+  return `未点亮 ${summary.locked} · 已探索 ${summary.explored} · 已制霸 ${summary.dominated}`;
+}
+
+function updateShareMiniMap() {
+  const shareMiniMap = document.getElementById("shareMiniMap");
+
+  if (!shareMiniMap) {
+    return;
+  }
+
+  const strongestArea = getStrongestArea();
+
+  shareMiniMap.innerHTML = getAreaStats().map((area) => {
+    const itemSummary = area.items.map((item) => {
+      const itemState = getItemState(item);
+      return `<span class="share-mini-map__item share-mini-map__item--${itemState.state}" aria-hidden="true"></span>`;
+    }).join("");
+    const isStrongest = strongestArea && strongestArea.name === area.name;
+
+    return `
+      <article class="share-mini-map__area share-mini-map__area--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-state="${area.status}">
+        <div class="share-mini-map__area-head">
+          <strong>${area.name}</strong>
+          <span>${area.rate}%</span>
+        </div>
+        <div class="share-mini-map__progress" aria-hidden="true">
+          <div class="share-mini-map__progress-fill" style="width: ${area.rate}%"></div>
+        </div>
+        <div class="share-mini-map__items" aria-label="${area.name}项目状态">
+          ${itemSummary}
+        </div>
+      </article>
+    `;
+  }).join("");
 }
 
 function saveState() {

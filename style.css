@@ -12,6 +12,13 @@
   --teal: #229f91;
   --blue: #4e68d7;
   --yellow: #f5b942;
+  --gray-zone: #8c97a8;
+  --gray-zone-bg: rgba(140, 151, 168, 0.16);
+  --warm-zone: #8f6412;
+  --warm-zone-bg: rgba(245, 185, 66, 0.2);
+  --mint-zone: #1b7d73;
+  --mint-zone-bg: rgba(34, 159, 145, 0.2);
+  --crown-zone: linear-gradient(135deg, #ff9868, #f5b942 45%, #229f91 100%);
   --shadow: 0 20px 50px rgba(72, 80, 96, 0.14);
 }
 
@@ -337,6 +344,170 @@ h1 {
   font-weight: 850;
 }
 
+.share-mini-map {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas:
+    "starter main youth"
+    "side main survival";
+  gap: 10px 12px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(245, 185, 66, 0.22), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.66));
+  border: 1px solid rgba(38, 49, 61, 0.1);
+  border-radius: 8px;
+}
+
+.share-mini-map::before,
+.share-mini-map::after {
+  position: absolute;
+  content: "";
+  background: linear-gradient(90deg, rgba(38, 49, 61, 0.12), rgba(34, 159, 145, 0.28), rgba(38, 49, 61, 0.12));
+  pointer-events: none;
+}
+
+.share-mini-map::before {
+  top: 26%;
+  left: 18%;
+  width: 62%;
+  height: 2px;
+}
+
+.share-mini-map::after {
+  top: 25%;
+  left: 50%;
+  width: 2px;
+  height: 49%;
+}
+
+.share-mini-map__area {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(38, 49, 61, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(72, 80, 96, 0.08);
+}
+
+.share-mini-map__area--1 {
+  grid-area: starter;
+}
+
+.share-mini-map__area--2 {
+  grid-area: main;
+}
+
+.share-mini-map__area--3 {
+  grid-area: side;
+}
+
+.share-mini-map__area--4 {
+  grid-area: survival;
+}
+
+.share-mini-map__area--5 {
+  grid-area: youth;
+}
+
+.share-mini-map__area-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.share-mini-map__area-head strong {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.share-mini-map__progress {
+  height: 6px;
+  overflow: hidden;
+  background: rgba(38, 49, 61, 0.08);
+  border-radius: 999px;
+}
+
+.share-mini-map__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--yellow), var(--teal));
+  border-radius: inherit;
+}
+
+.share-mini-map__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.share-mini-map__item {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(140, 151, 168, 0.28);
+  border: 1px solid rgba(140, 151, 168, 0.36);
+}
+
+.share-mini-map__item--explored {
+  background: rgba(245, 185, 66, 0.92);
+  border-color: rgba(143, 100, 18, 0.3);
+}
+
+.share-mini-map__item--dominated {
+  background: linear-gradient(135deg, #54d7c5, #2e6de0);
+  border-color: rgba(34, 159, 145, 0.36);
+  box-shadow: 0 0 0 2px rgba(84, 215, 197, 0.15);
+}
+
+.share-mini-map__area[data-state="未探索"] {
+  color: var(--gray-zone);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(140, 151, 168, 0.08));
+}
+
+.share-mini-map__area[data-state="探索中"] {
+  border-color: rgba(245, 185, 66, 0.24);
+  box-shadow: 0 10px 24px rgba(245, 185, 66, 0.16);
+}
+
+.share-mini-map__area[data-state="接近制霸"] {
+  border-color: rgba(34, 159, 145, 0.28);
+  box-shadow: 0 12px 28px rgba(34, 159, 145, 0.16);
+}
+
+.share-mini-map__area[data-state="已制霸"] {
+  border-color: rgba(34, 159, 145, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(84, 215, 197, 0.12)),
+    rgba(255, 255, 255, 0.92);
+}
+
+.share-mini-map__area.is-strongest {
+  box-shadow:
+    0 0 0 2px rgba(239, 111, 97, 0.18),
+    0 16px 30px rgba(72, 80, 96, 0.12);
+}
+
+.share-mini-map__area.is-strongest::after {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 6px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  content: "最强";
+  background: linear-gradient(135deg, var(--accent), var(--blue));
+  border-radius: 999px;
+}
+
 .share-tags {
   display: flex;
   flex-wrap: wrap;
@@ -427,21 +598,60 @@ h1 {
 }
 
 .map-route {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 1.18fr) minmax(0, 1fr);
+  grid-template-areas:
+    "starter main youth"
+    "side main survival";
+  gap: 18px 20px;
+  padding: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(245, 185, 66, 0.2), transparent 24%),
+    radial-gradient(circle at 92% 18%, rgba(84, 215, 197, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.52));
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 16px;
+  box-shadow: 0 28px 70px rgba(72, 80, 96, 0.12);
+}
+
+.map-route::before,
+.map-route::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.map-route::before {
+  top: 25%;
+  left: 14%;
+  width: 72%;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(38, 49, 61, 0.1), rgba(34, 159, 145, 0.4), rgba(78, 104, 215, 0.24), rgba(38, 49, 61, 0.08));
+  box-shadow: 0 0 18px rgba(34, 159, 145, 0.16);
+}
+
+.map-route::after {
+  top: 25%;
+  left: 50%;
+  width: 3px;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(78, 104, 215, 0.16), rgba(34, 159, 145, 0.42), rgba(245, 185, 66, 0.18));
+  box-shadow: 0 0 18px rgba(78, 104, 215, 0.12);
 }
 
 .map-area-card {
   position: relative;
   min-width: 0;
+  z-index: 1;
   padding: 18px 16px 16px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84)),
-    linear-gradient(135deg, rgba(245, 185, 66, 0.14), rgba(34, 159, 145, 0.1));
-  border: 1px solid rgba(255, 255, 255, 0.86);
-  border-radius: 8px;
-  box-shadow: 0 14px 34px rgba(72, 80, 96, 0.11);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.84)),
+    linear-gradient(135deg, rgba(245, 185, 66, 0.12), rgba(34, 159, 145, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(72, 80, 96, 0.12);
 }
 
 .map-area-card::before {
@@ -454,10 +664,44 @@ h1 {
   opacity: 0.88;
 }
 
+.map-area-card::after {
+  position: absolute;
+  top: 18px;
+  left: -14px;
+  width: 24px;
+  height: 24px;
+  content: "";
+  background: rgba(255, 255, 255, 0.92);
+  border: 4px solid rgba(38, 49, 61, 0.12);
+  border-radius: 999px;
+  box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.16);
+}
+
+.map-area-card--1 {
+  grid-area: starter;
+}
+
+.map-area-card--2 {
+  grid-area: main;
+  align-self: center;
+}
+
+.map-area-card--3 {
+  grid-area: side;
+}
+
+.map-area-card--4 {
+  grid-area: survival;
+}
+
+.map-area-card--5 {
+  grid-area: youth;
+}
+
 .map-area-card__path {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-start;
   margin-bottom: 14px;
 }
 
@@ -473,12 +717,7 @@ h1 {
   letter-spacing: 0.04em;
   background: var(--ink);
   border-radius: 999px;
-}
-
-.map-area-card__arrow {
-  color: var(--muted);
-  font-size: 18px;
-  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(38, 49, 61, 0.16);
 }
 
 .map-area-card__head {
@@ -544,48 +783,165 @@ h1 {
   font-weight: 900;
 }
 
-.map-area-card__items {
+.map-area-card__progress {
+  height: 8px;
+  margin-top: 16px;
+  overflow: hidden;
+  background: rgba(38, 49, 61, 0.08);
+  border-radius: 999px;
+}
+
+.map-area-card__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--yellow), var(--teal), var(--blue));
+  border-radius: inherit;
+}
+
+.map-area-card__items-meta {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.map-area-card__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   gap: 8px;
   margin: 16px 0 0;
   padding: 0;
   list-style: none;
 }
 
-.map-area-card__items li {
+.map-item-node {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   padding: 8px 10px;
   color: var(--ink);
   font-size: 13px;
   font-weight: 760;
   line-height: 1.25;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(38, 49, 61, 0.09);
   border-radius: 999px;
 }
 
-.map-area-card[data-state="未探索"] .map-area-card__status {
+.map-item-node__dot {
+  width: 12px;
+  height: 12px;
+  background: rgba(140, 151, 168, 0.25);
+  border: 1px solid rgba(140, 151, 168, 0.34);
+  border-radius: 999px;
+}
+
+.map-item-node__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-item-node__level {
   color: var(--muted);
-  background: rgba(100, 113, 132, 0.08);
-  border-color: rgba(100, 113, 132, 0.15);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.map-item-node--explored {
+  border-color: rgba(245, 185, 66, 0.18);
+  background: rgba(255, 247, 224, 0.9);
+}
+
+.map-item-node--explored .map-item-node__dot {
+  background: rgba(245, 185, 66, 0.92);
+  border-color: rgba(143, 100, 18, 0.28);
+}
+
+.map-item-node--dominated {
+  border-color: rgba(34, 159, 145, 0.2);
+  background: linear-gradient(135deg, rgba(84, 215, 197, 0.16), rgba(78, 104, 215, 0.1));
+}
+
+.map-item-node--dominated .map-item-node__dot {
+  background: linear-gradient(135deg, #54d7c5, #2e6de0);
+  border-color: rgba(34, 159, 145, 0.3);
+  box-shadow: 0 0 0 2px rgba(84, 215, 197, 0.16);
+}
+
+.map-area-card[data-state="未探索"] .map-area-card__status {
+  color: var(--gray-zone);
+  background: var(--gray-zone-bg);
+  border-color: rgba(140, 151, 168, 0.18);
 }
 
 .map-area-card[data-state="探索中"] .map-area-card__status {
-  color: #8f6412;
-  background: rgba(245, 185, 66, 0.14);
-  border-color: rgba(245, 185, 66, 0.2);
+  color: var(--warm-zone);
+  background: var(--warm-zone-bg);
+  border-color: rgba(245, 185, 66, 0.26);
 }
 
 .map-area-card[data-state="接近制霸"] .map-area-card__status {
-  color: #1b7d73;
-  background: rgba(34, 159, 145, 0.12);
-  border-color: rgba(34, 159, 145, 0.18);
+  color: var(--mint-zone);
+  background: var(--mint-zone-bg);
+  border-color: rgba(34, 159, 145, 0.22);
 }
 
 .map-area-card[data-state="已制霸"] .map-area-card__status {
   color: #ffffff;
-  background: linear-gradient(90deg, var(--blue), var(--teal));
+  background: var(--crown-zone);
   border-color: transparent;
+}
+
+.map-area-card[data-state="未探索"] {
+  color: var(--gray-zone);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(140, 151, 168, 0.08)),
+    rgba(255, 255, 255, 0.82);
+}
+
+.map-area-card[data-state="未探索"]::after {
+  border-color: rgba(140, 151, 168, 0.3);
+}
+
+.map-area-card[data-state="探索中"] {
+  box-shadow:
+    0 0 0 1px rgba(245, 185, 66, 0.14),
+    0 18px 38px rgba(245, 185, 66, 0.12);
+}
+
+.map-area-card[data-state="探索中"]::after {
+  border-color: rgba(245, 185, 66, 0.46);
+}
+
+.map-area-card[data-state="接近制霸"] {
+  box-shadow:
+    0 0 0 1px rgba(34, 159, 145, 0.16),
+    0 20px 42px rgba(34, 159, 145, 0.14);
+}
+
+.map-area-card[data-state="接近制霸"]::after {
+  border-color: rgba(34, 159, 145, 0.44);
+}
+
+.map-area-card[data-state="已制霸"] {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(84, 215, 197, 0.14)),
+    rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 0 2px rgba(34, 159, 145, 0.16),
+    0 22px 48px rgba(34, 159, 145, 0.18);
+}
+
+.map-area-card[data-state="已制霸"]::after {
+  border-color: rgba(34, 159, 145, 0.48);
+  background: linear-gradient(135deg, #ffffff, rgba(84, 215, 197, 0.28));
 }
 
 .section-head {
@@ -743,6 +1099,46 @@ h2 {
 
   .map-route {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "starter"
+      "main"
+      "side"
+      "survival"
+      "youth";
+    gap: 14px;
+    padding: 20px 14px 18px 28px;
+  }
+
+  .map-route::before {
+    top: 28px;
+    left: 18px;
+    width: 3px;
+    height: calc(100% - 56px);
+    background: linear-gradient(180deg, rgba(38, 49, 61, 0.08), rgba(34, 159, 145, 0.36), rgba(78, 104, 215, 0.18));
+  }
+
+  .map-route::after {
+    display: none;
+  }
+
+  .share-mini-map {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "starter main"
+      "side main"
+      "survival youth";
+  }
+
+  .share-mini-map::before {
+    top: 23%;
+    left: 24%;
+    width: 52%;
+  }
+
+  .share-mini-map::after {
+    top: 18%;
+    left: 50%;
+    height: 52%;
   }
 }
 
@@ -777,16 +1173,39 @@ h2 {
     grid-template-columns: 1fr;
   }
 
-  .map-area-card__head,
-  .map-area-card__meta {
-    grid-template-columns: 1fr;
-  }
-
   .map-area-card__head {
     display: grid;
   }
 
+  .map-area-card__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .map-area-card__items {
+    grid-template-columns: 1fr;
+  }
+
+  .map-item-node__name {
+    white-space: normal;
+  }
+
   .share-poster h2 {
     max-width: 100%;
+  }
+
+  .share-mini-map {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "starter"
+      "main"
+      "side"
+      "survival"
+      "youth";
+    padding: 12px;
+  }
+
+  .share-mini-map::before,
+  .share-mini-map::after {
+    display: none;
   }
 }

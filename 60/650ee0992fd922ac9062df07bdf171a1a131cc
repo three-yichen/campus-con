@@ -1,0 +1,24 @@
+index.html
+  s_8b61c0681eeb26::t_0a43d9f7b4095a 46,104
+main.js
+  s_8b61c0681eeb26::t_8308d64f6608d2 353,355
+  s_8b61c0681eeb26::t_cd6d6abbe573f7 68,327-352,354,356-365,416
+README.md
+  s_8b61c0681eeb26::t_89bcaf4ef18058 12,49-80,88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "60650ee0992fd922ac9062df07bdf171a1a131cc",
+  "prompts": {},
+  "sessions": {
+    "s_8b61c0681eeb26": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ee00e-e1a5-7602-add1-a18b8700db59",
+        "model": "gpt-5.4"
+      },
+      "human_author": "three-yichen <happywyc006@163.com>"
+    }
+  }
+}

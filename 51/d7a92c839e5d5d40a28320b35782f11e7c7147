@@ -1,0 +1,25 @@
+README.md
+  s_f0c2cbc57af681::t_2a5566ee8e454d 5-12,33-34
+index.html
+  s_f0c2cbc57af681::t_3e7a686ee8c397 84-87
+style.css
+  s_f0c2cbc57af681::t_85922f0b853841 15-21,347-510,601,603-641,647,650-654,667-700,704,720,786-800,802-813,820-825,831,836-851,853-881,885-887,891-893,898,902-946,1102-1141,1176-1179,1184-1189,1195-1209
+main.js
+  s_f0c2cbc57af681::t_82a1a3d6e6fede 145,251-277,311,314,335-343,356-358,360,368-370,426-480
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "51d7a92c839e5d5d40a28320b35782f11e7c7147",
+  "prompts": {},
+  "sessions": {
+    "s_f0c2cbc57af681": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ee031-6892-7e32-b9cd-6b2f616ed651",
+        "model": "gpt-5.4"
+      },
+      "human_author": "three-yichen <happywyc006@163.com>"
+    }
+  }
+}

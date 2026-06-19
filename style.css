@@ -364,6 +364,18 @@ h1 {
   background: var(--blue);
 }
 
+.share-strongest-area {
+  margin-bottom: 0;
+  padding: 14px 16px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.45;
+  background: linear-gradient(135deg, rgba(245, 185, 66, 0.16), rgba(78, 104, 215, 0.08));
+  border: 1px solid rgba(38, 49, 61, 0.1);
+  border-radius: 6px;
+}
+
 .share-items-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -409,8 +421,171 @@ h1 {
   border-top: 1px solid var(--line);
 }
 
+.map-section,
 .items-section {
   margin-top: 34px;
+}
+
+.map-route {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.map-area-card {
+  position: relative;
+  min-width: 0;
+  padding: 18px 16px 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84)),
+    linear-gradient(135deg, rgba(245, 185, 66, 0.14), rgba(34, 159, 145, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(72, 80, 96, 0.11);
+}
+
+.map-area-card::before {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 5px;
+  content: "";
+  background: linear-gradient(90deg, var(--accent), var(--yellow), var(--teal), var(--blue));
+  opacity: 0.88;
+}
+
+.map-area-card__path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.map-area-card__step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  background: var(--ink);
+  border-radius: 999px;
+}
+
+.map-area-card__arrow {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.map-area-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.map-area-card__eyebrow {
+  margin-bottom: 6px;
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-area-card h3 {
+  margin-bottom: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.map-area-card__status {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  white-space: nowrap;
+  background: rgba(239, 111, 97, 0.1);
+  border: 1px solid rgba(239, 111, 97, 0.14);
+  border-radius: 999px;
+}
+
+.map-area-card__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+.map-area-card__meta div {
+  min-width: 0;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(38, 49, 61, 0.08);
+  border-radius: 6px;
+}
+
+.map-area-card__meta dt {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.map-area-card__meta dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.map-area-card__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-area-card__items li {
+  padding: 8px 10px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.25;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(38, 49, 61, 0.09);
+  border-radius: 999px;
+}
+
+.map-area-card[data-state="未探索"] .map-area-card__status {
+  color: var(--muted);
+  background: rgba(100, 113, 132, 0.08);
+  border-color: rgba(100, 113, 132, 0.15);
+}
+
+.map-area-card[data-state="探索中"] .map-area-card__status {
+  color: #8f6412;
+  background: rgba(245, 185, 66, 0.14);
+  border-color: rgba(245, 185, 66, 0.2);
+}
+
+.map-area-card[data-state="接近制霸"] .map-area-card__status {
+  color: #1b7d73;
+  background: rgba(34, 159, 145, 0.12);
+  border-color: rgba(34, 159, 145, 0.18);
+}
+
+.map-area-card[data-state="已制霸"] .map-area-card__status {
+  color: #ffffff;
+  background: linear-gradient(90deg, var(--blue), var(--teal));
+  border-color: transparent;
 }
 
 .section-head {
@@ -565,6 +740,10 @@ h2 {
   .share-poster {
     padding: 24px 18px;
   }
+
+  .map-route {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 520px) {
@@ -596,6 +775,15 @@ h2 {
   .share-poster__hero,
   .share-items-list {
     grid-template-columns: 1fr;
+  }
+
+  .map-area-card__head,
+  .map-area-card__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .map-area-card__head {
+    display: grid;
   }
 
   .share-poster h2 {

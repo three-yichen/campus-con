@@ -58,6 +58,29 @@ const TAG_RULES = [
   { tag: "卷王预备役", items: ["参加竞赛", "实习", "奖学金申请"], minScore: 7 }
 ];
 
+const MAP_AREAS = [
+  {
+    name: "新手村",
+    items: ["军训", "早八", "食堂排队", "抢课失败", "抢课成功"]
+  },
+  {
+    name: "主线副本",
+    items: ["图书馆自习", "小组作业", "通宵赶 ddl", "期末周复习", "绩点焦虑", "写论文", "课程展示/汇报", "答辩"]
+  },
+  {
+    name: "支线副本",
+    items: ["社团活动", "学生会/组织工作", "讲座签到", "参加竞赛", "奖学金申请"]
+  },
+  {
+    name: "生存副本",
+    items: ["校医院", "体测", "打印店救命", "校园卡丢失", "外卖进校"]
+  },
+  {
+    name: "青春副本",
+    items: ["逃课", "宿舍夜聊", "校园恋爱", "操场散步", "实习", "考研/保研焦虑", "毕业照"]
+  }
+];
+
 const STORAGE_KEY = "campus-conquest-state";
 const FOOTER_TEXT = "不是所有人都能绩点制霸，但每个人都可以期末周幸存。";
 const DEFAULT_PERSONALITY_TAG = "普通大学生";
@@ -117,6 +140,7 @@ function updateResult() {
   document.getElementById("rateValue").textContent = `${result.rate}%`;
   document.getElementById("titleValue").textContent = result.title;
   document.getElementById("progressFill").style.width = `${result.rate}%`;
+  updateMapAreas();
   updateShareCard();
 }
 
@@ -182,14 +206,140 @@ function getPersonalityTagsText() {
   return tags.length > 0 ? tags.join(" / ") : DEFAULT_PERSONALITY_TAG;
 }
 
+function getAreaStatus(rate) {
+  if (rate < 30) {
+    return "未探索";
+  }
+
+  if (rate < 60) {
+    return "探索中";
+  }
+
+  if (rate < 90) {
+    return "接近制霸";
+  }
+
+  return "已制霸";
+}
+
+function getAreaStats() {
+  return MAP_AREAS.map((area, index) => {
+    const totalScore = area.items.reduce((sum, item) => {
+      const itemIndex = ITEMS.indexOf(item);
+      return sum + (itemIndex === -1 ? 0 : selectedLevels[itemIndex]);
+    }, 0);
+    const maxScore = area.items.length * MAX_LEVEL;
+    const rate = maxScore === 0 ? 0 : Math.round((totalScore / maxScore) * 100);
+    const clearedCount = area.items.reduce((count, item) => {
+      const itemIndex = ITEMS.indexOf(item);
+      return count + (itemIndex !== -1 && selectedLevels[itemIndex] > 0 ? 1 : 0);
+    }, 0);
+
+    return {
+      ...area,
+      index,
+      totalScore,
+      maxScore,
+      rate,
+      clearedCount,
+      status: getAreaStatus(rate)
+    };
+  });
+}
+
+function getStrongestArea() {
+  const areaStats = getAreaStats();
+  const strongestArea = areaStats.reduce((bestArea, area) => {
+    if (!bestArea) {
+      return area;
+    }
+
+    if (area.rate > bestArea.rate) {
+      return area;
+    }
+
+    if (area.rate === bestArea.rate && area.totalScore > bestArea.totalScore) {
+      return area;
+    }
+
+    return bestArea;
+  }, null);
+
+  if (!strongestArea || strongestArea.rate === 0) {
+    return null;
+  }
+
+  return strongestArea;
+}
+
+function renderMapAreas() {
+  const mapAreas = document.getElementById("mapAreas");
+
+  if (!mapAreas) {
+    return;
+  }
+
+  mapAreas.innerHTML = getAreaStats().map((area) => {
+    const itemTags = area.items.map((item) => `<li>${item}</li>`).join("");
+
+    return `
+      <article class="map-area-card map-area-card--${area.index + 1}" data-area-index="${area.index}">
+        <div class="map-area-card__path" aria-hidden="true">
+          <span class="map-area-card__step">${String(area.index + 1).padStart(2, "0")}</span>
+          <span class="map-area-card__arrow">→</span>
+        </div>
+        <div class="map-area-card__head">
+          <div>
+            <p class="map-area-card__eyebrow">Campus Route ${area.index + 1}</p>
+            <h3>${area.name}</h3>
+          </div>
+          <span class="map-area-card__status" id="mapAreaStatus${area.index}">${area.status}</span>
+        </div>
+        <dl class="map-area-card__meta">
+          <div>
+            <dt>区域完成率</dt>
+            <dd id="mapAreaRate${area.index}">${area.rate}%</dd>
+          </div>
+          <div>
+            <dt>已激活项目</dt>
+            <dd id="mapAreaChecked${area.index}">${area.clearedCount}/${area.items.length}</dd>
+          </div>
+        </dl>
+        <ul class="map-area-card__items">
+          ${itemTags}
+        </ul>
+      </article>
+    `;
+  }).join("");
+}
+
+function updateMapAreas() {
+  getAreaStats().forEach((area) => {
+    const areaCard = document.querySelector(`.map-area-card[data-area-index="${area.index}"]`);
+    const rateElement = document.getElementById(`mapAreaRate${area.index}`);
+    const checkedElement = document.getElementById(`mapAreaChecked${area.index}`);
+    const statusElement = document.getElementById(`mapAreaStatus${area.index}`);
+
+    if (!areaCard || !rateElement || !checkedElement || !statusElement) {
+      return;
+    }
+
+    areaCard.dataset.state = area.status;
+    rateElement.textContent = `${area.rate}%`;
+    checkedElement.textContent = `${area.clearedCount}/${area.items.length}`;
+    statusElement.textContent = area.status;
+  });
+}
+
 function updateShareCard() {
   const shareCardRate = document.getElementById("shareCardRate");
   const shareCardTitle = document.getElementById("shareCardTitle");
   const shareCardTags = document.getElementById("shareCardTags");
+  const shareCardStrongestArea = document.getElementById("shareCardStrongestArea");
   const shareCardItems = document.getElementById("shareCardItems");
   const shareCardItemsMore = document.getElementById("shareCardItemsMore");
 
-  if (!shareCardRate || !shareCardTitle || !shareCardTags || !shareCardItems || !shareCardItemsMore) {
+  if (!shareCardRate || !shareCardTitle || !shareCardTags || !shareCardStrongestArea || !shareCardItems || !shareCardItemsMore) {
     return;
   }
 
@@ -198,9 +348,13 @@ function updateShareCard() {
   const displayTags = tags.length > 0 ? tags : [DEFAULT_PERSONALITY_TAG];
   const dominatedItems = getDominatedItems();
   const dominatedCount = selectedLevels.filter((value) => value >= DOMINATED_LEVEL).length;
+  const strongestArea = getStrongestArea();
 
   shareCardRate.textContent = `${result.rate}%`;
   shareCardTitle.textContent = result.title;
+  shareCardStrongestArea.textContent = strongestArea
+    ? `${strongestArea.name} ${strongestArea.rate}%`
+    : "还在新手村入口";
   shareCardTags.innerHTML = "";
   shareCardItems.innerHTML = "";
 
@@ -271,7 +425,11 @@ function resetState() {
 function copyShareText() {
   const rate = document.getElementById("rateValue").textContent;
   const title = document.getElementById("titleValue").textContent;
-  const shareText = `我的大学生制霸率是 ${rate}，称号是「${title}」。\n我的大学人格：${getPersonalityTagsText()}\n已制霸项目：${getDominatedItemsText()}\n${FOOTER_TEXT}`;
+  const strongestArea = getStrongestArea();
+  const strongestAreaText = strongestArea
+    ? `${strongestArea.name} ${strongestArea.rate}%`
+    : "还在新手村入口";
+  const shareText = `我的大学生制霸率是 ${rate}，称号是「${title}」。\n我的大学人格：${getPersonalityTagsText()}\n最强副本：${strongestAreaText}\n已制霸项目：${getDominatedItemsText()}\n${FOOTER_TEXT}`;
 
   if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
     navigator.clipboard.writeText(shareText)
@@ -393,6 +551,7 @@ function setCopyStatus(message) {
 document.addEventListener("DOMContentLoaded", () => {
   selectedLevels = loadState();
   renderItems();
+  renderMapAreas();
   updateResult();
 
   document.getElementById("itemsGrid").addEventListener("click", (event) => {

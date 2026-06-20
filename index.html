@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>大学生制霸生成器</title>
+  <title>大学生制霸</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -42,9 +42,10 @@
         </dl>
 
         <div class="action-row">
-          <button class="button button-primary" type="button" id="copyButton">复制分享文案</button>
-          <button class="button button-secondary" type="button" id="downloadButton">下载分享图</button>
-          <button class="button button-secondary" type="button" id="resetButton">重置</button>
+          <button class="button button-primary" type="button" id="copyButton">复制文案</button>
+          <button class="button button-secondary" type="button" id="downloadButton">保存海报</button>
+          <button class="button button-secondary" type="button" id="themeButton">换套皮肤</button>
+          <button class="button button-secondary" type="button" id="resetButton">重新生成</button>
         </div>
         <p class="copy-status" id="copyStatus" role="status" aria-live="polite"></p>
       </section>
@@ -53,7 +54,7 @@
     <section class="map-section" aria-labelledby="mapTitle">
       <div class="section-head section-head--stacked">
         <h2 id="mapTitle">我的大学校园地图</h2>
-        <p class="section-subtitle">沿着校园副本路线，看看你已经打到哪一关。</p>
+        <p class="section-subtitle">摊开这张校园分区图，看看哪些区域已经被你点亮。</p>
       </div>
       <div class="campus-map" id="mapAreas"></div>
       <div class="area-details" id="areaDetails" aria-label="区域详情"></div>
@@ -69,9 +70,9 @@
     <section class="share-section" aria-labelledby="shareTitle">
       <article class="share-poster" aria-label="分享结果卡片">
         <div class="share-poster__top">
-          <p class="share-poster__kicker">Campus Conquest Report</p>
-          <h2 id="shareTitle">我的大学校园制霸报告</h2>
-          <p class="share-poster__subtitle">看看我把大学生活副本推进到了哪一段</p>
+          <p class="share-poster__kicker">Campus Life Report</p>
+          <h2 id="shareTitle">我的大学生制霸报告</h2>
+          <p class="share-poster__subtitle">一张图看看我的大学副本进度。</p>
         </div>
 
         <div class="share-poster__hero">
@@ -91,24 +92,27 @@
         </div>
 
         <div class="share-poster__cluster">
-          <div class="share-poster__block">
-            <h3>称号</h3>
-            <p class="share-strongest-area share-strongest-area--title" id="shareCardTitleDuplicate">大学新手村</p>
-          </div>
-
-          <div class="share-poster__block">
-            <h3>我的大学人格标签</h3>
+          <div class="share-poster__block share-poster__block--tags">
+            <h3>人格标签</h3>
             <div class="share-tags" id="shareCardTags">
               <span class="share-tag">普通大学生</span>
             </div>
           </div>
 
-          <div class="share-poster__block">
-            <h3>最强校园区域</h3>
-            <p class="share-strongest-area" id="shareCardStrongestArea">还在新手村入口</p>
+          <div class="share-poster__pill-row">
+            <div class="share-poster__pill-card">
+              <h3>最强副本</h3>
+              <p class="share-strongest-area share-strongest-area--title" id="shareCardStrongestArea">还在新手村入口</p>
+            </div>
+
+            <div class="share-poster__pill-card">
+              <h3>待通关副本</h3>
+              <p class="share-strongest-area" id="shareCardWeakestArea">还没正式开图</p>
+            </div>
           </div>
         </div>
 
+        <p class="share-poster__theme" id="sharePosterTheme">今日皮肤：期末周奶黄</p>
         <p class="share-poster__footer">
           不是所有人都能绩点制霸，但每个人都可以期末周幸存。
         </p>

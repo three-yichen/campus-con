@@ -50,61 +50,13 @@
       </section>
     </header>
 
-    <section class="share-section" aria-labelledby="shareTitle">
-      <article class="share-poster" aria-label="分享结果卡片">
-        <div class="share-poster__top">
-          <p class="share-poster__kicker">Campus Conquest Report</p>
-          <h2 id="shareTitle">我的大学校园制霸报告</h2>
-          <p class="share-poster__subtitle">看看我点亮了多少大学生活地图</p>
-        </div>
-
-        <div class="share-poster__hero">
-          <div>
-            <span class="share-poster__label">制霸率</span>
-            <strong class="share-poster__rate" id="shareCardRate">0%</strong>
-          </div>
-          <div class="share-poster__title-box">
-            <span class="share-poster__label">称号</span>
-            <strong id="shareCardTitle">大学新手村</strong>
-          </div>
-        </div>
-
-        <div class="share-poster__block">
-          <h3>我的大学人格标签</h3>
-          <div class="share-tags" id="shareCardTags">
-            <span class="share-tag">普通大学生</span>
-          </div>
-        </div>
-
-        <div class="share-poster__block">
-          <h3>最强校园区域</h3>
-          <p class="share-strongest-area" id="shareCardStrongestArea">还在新手村入口</p>
-        </div>
-
-        <div class="share-poster__block">
-          <h3>迷你校园地图</h3>
-          <div class="share-mini-map" id="shareMiniMap" aria-label="分享卡片迷你地图"></div>
-        </div>
-
-        <div class="share-poster__block">
-          <h3>已制霸项目摘要</h3>
-          <ul class="share-items-list" id="shareCardItems">
-            <li class="share-items-list__empty">还在新手村探索中</li>
-          </ul>
-          <p class="share-items-more" id="shareCardItemsMore"></p>
-        </div>
-
-        <p class="share-poster__footer">
-          不是所有人都能绩点制霸，但每个人都可以期末周幸存。
-        </p>
-      </article>
-    </section>
-
     <section class="map-section" aria-labelledby="mapTitle">
-      <div class="section-head">
+      <div class="section-head section-head--stacked">
         <h2 id="mapTitle">我的大学校园地图</h2>
+        <p class="section-subtitle">沿着校园副本路线，看看你已经打到哪一关。</p>
       </div>
       <div class="campus-map" id="mapAreas"></div>
+      <div class="area-details" id="areaDetails" aria-label="区域详情"></div>
     </section>
 
     <section class="items-section" aria-labelledby="itemsTitle">
@@ -112,6 +64,55 @@
         <h2 id="itemsTitle">大学生活项目</h2>
       </div>
       <div class="items-grid" id="itemsGrid"></div>
+    </section>
+
+    <section class="share-section" aria-labelledby="shareTitle">
+      <article class="share-poster" aria-label="分享结果卡片">
+        <div class="share-poster__top">
+          <p class="share-poster__kicker">Campus Conquest Report</p>
+          <h2 id="shareTitle">我的大学校园制霸报告</h2>
+          <p class="share-poster__subtitle">看看我把大学生活副本推进到了哪一段</p>
+        </div>
+
+        <div class="share-poster__hero">
+          <div>
+            <span class="share-poster__label">制霸率</span>
+            <strong class="share-poster__rate" id="shareCardRate">0%</strong>
+            <p class="share-poster__meta" id="sharePosterMeta">0/30 项已点亮</p>
+          </div>
+          <div class="share-poster__title-box">
+            <span class="share-poster__label">称号</span>
+            <strong id="shareCardTitle">大学新手村</strong>
+          </div>
+        </div>
+
+        <div class="share-poster__block share-poster__block--mini-map">
+          <div class="share-mini-map" id="shareMiniMap" aria-label="分享卡片迷你地图"></div>
+        </div>
+
+        <div class="share-poster__cluster">
+          <div class="share-poster__block">
+            <h3>称号</h3>
+            <p class="share-strongest-area share-strongest-area--title" id="shareCardTitleDuplicate">大学新手村</p>
+          </div>
+
+          <div class="share-poster__block">
+            <h3>我的大学人格标签</h3>
+            <div class="share-tags" id="shareCardTags">
+              <span class="share-tag">普通大学生</span>
+            </div>
+          </div>
+
+          <div class="share-poster__block">
+            <h3>最强校园区域</h3>
+            <p class="share-strongest-area" id="shareCardStrongestArea">还在新手村入口</p>
+          </div>
+        </div>
+
+        <p class="share-poster__footer">
+          不是所有人都能绩点制霸，但每个人都可以期末周幸存。
+        </p>
+      </article>
     </section>
 
     <footer class="page-footer">

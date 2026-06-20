@@ -93,7 +93,6 @@ const STORAGE_KEY = "campus-conquest-state";
 const FOOTER_TEXT = "不是所有人都能绩点制霸，但每个人都可以期末周幸存。";
 const DEFAULT_PERSONALITY_TAG = "普通大学生";
 const DOMINATED_LEVEL = 3;
-const MAX_DOMINATED_ITEMS = 8;
 const MAX_PERSONALITY_TAGS = 3;
 const EMPTY_DOMINATED_TEXT = "还在新手村探索中";
 const SHARE_IMAGE_FILE_NAME = "campus-conquest-report.png";
@@ -190,22 +189,14 @@ function getPersonalityTags() {
     .map((matchedRule) => matchedRule.tag);
 }
 
-function getDominatedItems(limit = MAX_DOMINATED_ITEMS) {
-  return ITEMS.filter((_, index) => selectedLevels[index] >= DOMINATED_LEVEL)
-    .slice(0, limit);
-}
-
 function getDominatedItemsText() {
-  const dominatedItems = getDominatedItems();
+  const dominatedItems = ITEMS.filter((_, index) => selectedLevels[index] >= DOMINATED_LEVEL);
 
   if (dominatedItems.length === 0) {
     return EMPTY_DOMINATED_TEXT;
   }
 
-  const dominatedCount = selectedLevels.filter((value) => value >= DOMINATED_LEVEL).length;
-  const suffix = dominatedCount > MAX_DOMINATED_ITEMS ? "……" : "";
-
-  return `${dominatedItems.join("、")}${suffix}`;
+  return dominatedItems.slice(0, 8).join("、") + (dominatedItems.length > 8 ? "……" : "");
 }
 
 function getPersonalityTagsText() {
@@ -227,6 +218,26 @@ function getAreaStatus(rate) {
   }
 
   return "已制霸";
+}
+
+function getAreaTone(rate) {
+  if (rate === 0) {
+    return "empty";
+  }
+
+  if (rate <= 30) {
+    return "low";
+  }
+
+  if (rate <= 60) {
+    return "mid";
+  }
+
+  if (rate <= 90) {
+    return "high";
+  }
+
+  return "peak";
 }
 
 function getItemVisualState(item) {
@@ -268,11 +279,6 @@ function getAreaStats() {
       const itemIndex = getItemIndex(item);
       return count + (itemIndex !== -1 && selectedLevels[itemIndex] > 0 ? 1 : 0);
     }, 0);
-    const summary = area.items.reduce((counts, item) => {
-      const itemState = getItemVisualState(item);
-      counts[itemState.state] += 1;
-      return counts;
-    }, { locked: 0, explored: 0, dominated: 0 });
 
     return {
       ...area,
@@ -282,7 +288,7 @@ function getAreaStats() {
       rate,
       clearedCount,
       status: getAreaStatus(rate),
-      summary
+      tone: getAreaTone(rate)
     };
   });
 }
@@ -311,10 +317,6 @@ function getStrongestArea() {
   return strongestArea;
 }
 
-function getAreaNodeSummary(area) {
-  return `未点亮 ${area.summary.locked} · 已探索 ${area.summary.explored} · 已制霸 ${area.summary.dominated}`;
-}
-
 function renderAreaChips(items) {
   return items.map((item) => {
     const itemState = getItemVisualState(item);
@@ -328,6 +330,36 @@ function renderAreaChips(items) {
   }).join("");
 }
 
+function renderCampusNode(area, strongestArea) {
+  const isStrongest = strongestArea && strongestArea.name === area.name;
+
+  return `
+    <article class="campus-node campus-node--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-tone="${area.tone}">
+      <div class="campus-node__topline">
+        <span class="campus-node__badge">区域 ${area.index + 1}</span>
+        <span class="campus-node__rate">${area.rate}%</span>
+      </div>
+      <h3>${area.name}</h3>
+      <p class="campus-node__meta">${area.clearedCount}/${area.items.length} 项已点亮</p>
+      <div class="campus-node__progress" aria-label="${area.status}">
+        <span style="width: ${area.rate}%"></span>
+      </div>
+      <p class="campus-node__status">${area.status}</p>
+    </article>
+  `;
+}
+
+function renderMiniNode(area, strongestArea) {
+  const isStrongest = strongestArea && strongestArea.name === area.name;
+
+  return `
+    <article class="mini-route-node mini-route-node--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-tone="${area.tone}">
+      <strong>${area.name}</strong>
+      <span>${area.rate}%</span>
+    </article>
+  `;
+}
+
 function renderCampusMap() {
   const mapAreas = document.getElementById("mapAreas");
 
@@ -335,103 +367,79 @@ function renderCampusMap() {
     return;
   }
 
+  const areaStats = getAreaStats();
+  const strongestArea = getStrongestArea();
+
   mapAreas.innerHTML = `
-    <div class="campus-map__paper" aria-hidden="true"></div>
-    <div class="campus-map__roads" aria-hidden="true">
-      <span class="campus-road campus-road--1"></span>
-      <span class="campus-road campus-road--2"></span>
-      <span class="campus-road campus-road--3"></span>
-      <span class="campus-road campus-road--4"></span>
-      <span class="campus-road campus-road--5"></span>
-      <span class="campus-road campus-road--6"></span>
+    <div class="campus-map__frame">
+      <div class="campus-map__grid">
+        ${areaStats.map((area) => renderCampusNode(area, strongestArea)).join("")}
+      </div>
     </div>
-    ${getAreaStats().map((area) => {
-      return `
-        <article class="campus-zone campus-zone--${area.index + 1}" data-area-index="${area.index}" data-state="${area.status}">
-          <div class="campus-zone__badge">Campus ${area.index + 1}</div>
-          <div class="campus-zone__head">
-            <div>
-              <p class="campus-zone__eyebrow">大学生活区域</p>
-              <h3>${area.name}</h3>
-            </div>
-            <span class="campus-zone__status" id="campusZoneStatus${area.index}">${area.status}</span>
-          </div>
-          <dl class="campus-zone__meta">
-            <div>
-              <dt>完成率</dt>
-              <dd id="campusZoneRate${area.index}">${area.rate}%</dd>
-            </div>
-            <div>
-              <dt>点亮项目</dt>
-              <dd id="campusZoneChecked${area.index}">${area.clearedCount}/${area.items.length}</dd>
-            </div>
-          </dl>
-          <div class="campus-zone__progress" aria-hidden="true">
-            <div class="campus-zone__progress-fill" id="campusZoneProgress${area.index}" style="width: ${area.rate}%"></div>
-          </div>
-          <div class="campus-zone__summary">
-            <span>当前状态</span>
-            <span id="campusZoneSummary${area.index}">${getAreaNodeSummary(area)}</span>
-          </div>
-          <ul class="campus-zone__chips" id="campusZoneChips${area.index}">
-            ${renderAreaChips(area.items)}
-          </ul>
-        </article>
-      `;
-    }).join("")}
   `;
 }
 
 function updateCampusMap() {
-  getAreaStats().forEach((area) => {
-    const areaCard = document.querySelector(`.campus-zone[data-area-index="${area.index}"]`);
-    const rateElement = document.getElementById(`campusZoneRate${area.index}`);
-    const checkedElement = document.getElementById(`campusZoneChecked${area.index}`);
-    const statusElement = document.getElementById(`campusZoneStatus${area.index}`);
-    const progressElement = document.getElementById(`campusZoneProgress${area.index}`);
-    const summaryElement = document.getElementById(`campusZoneSummary${area.index}`);
-    const chipsElement = document.getElementById(`campusZoneChips${area.index}`);
+  renderCampusMap();
+}
 
-    if (!areaCard || !rateElement || !checkedElement || !statusElement || !progressElement || !summaryElement || !chipsElement) {
-      return;
-    }
+function renderAreaDetails() {
+  const areaDetails = document.getElementById("areaDetails");
 
-    areaCard.dataset.state = area.status;
-    rateElement.textContent = `${area.rate}%`;
-    checkedElement.textContent = `${area.clearedCount}/${area.items.length}`;
-    statusElement.textContent = area.status;
-    progressElement.style.width = `${area.rate}%`;
-    summaryElement.textContent = getAreaNodeSummary(area);
-    chipsElement.innerHTML = renderAreaChips(area.items);
-  });
+  if (!areaDetails) {
+    return;
+  }
+
+  areaDetails.innerHTML = `
+    <div class="section-head section-head--stacked area-details__head">
+      <h3>区域详情</h3>
+      <p class="section-subtitle">分区图只看区域进度，具体项目放在下面展开看。</p>
+    </div>
+    <div class="area-details__grid">
+      ${getAreaStats().map((area) => `
+        <details class="area-detail-card"${area.index === 0 ? " open" : ""}>
+          <summary class="area-detail-card__summary">
+            <span class="area-detail-card__name">${area.name}</span>
+            <span class="area-detail-card__meta">${area.status} · ${area.rate}%</span>
+          </summary>
+          <ul class="area-detail-card__chips">
+            ${renderAreaChips(area.items)}
+          </ul>
+        </details>
+      `).join("")}
+    </div>
+  `;
+}
+
+function updateAreaDetails() {
+  renderAreaDetails();
 }
 
 function updateShareCard() {
   const shareCardRate = document.getElementById("shareCardRate");
   const shareCardTitle = document.getElementById("shareCardTitle");
+  const shareCardTitleDuplicate = document.getElementById("shareCardTitleDuplicate");
   const shareCardTags = document.getElementById("shareCardTags");
   const shareCardStrongestArea = document.getElementById("shareCardStrongestArea");
-  const shareCardItems = document.getElementById("shareCardItems");
-  const shareCardItemsMore = document.getElementById("shareCardItemsMore");
+  const sharePosterMeta = document.getElementById("sharePosterMeta");
 
-  if (!shareCardRate || !shareCardTitle || !shareCardTags || !shareCardStrongestArea || !shareCardItems || !shareCardItemsMore) {
+  if (!shareCardRate || !shareCardTitle || !shareCardTitleDuplicate || !shareCardTags || !shareCardStrongestArea || !sharePosterMeta) {
     return;
   }
 
   const result = getCurrentResult();
   const tags = getPersonalityTags();
   const displayTags = tags.length > 0 ? tags : [DEFAULT_PERSONALITY_TAG];
-  const dominatedItems = getDominatedItems();
-  const dominatedCount = selectedLevels.filter((value) => value >= DOMINATED_LEVEL).length;
   const strongestArea = getStrongestArea();
 
   shareCardRate.textContent = `${result.rate}%`;
   shareCardTitle.textContent = result.title;
+  shareCardTitleDuplicate.textContent = result.title;
   shareCardStrongestArea.textContent = strongestArea
     ? `${strongestArea.name} ${strongestArea.rate}%`
     : "还在新手村入口";
   shareCardTags.innerHTML = "";
-  shareCardItems.innerHTML = "";
+  sharePosterMeta.textContent = `${result.checkedCount}/${ITEMS.length} 项已点亮`;
 
   displayTags.forEach((tag) => {
     const tagElement = document.createElement("span");
@@ -439,23 +447,6 @@ function updateShareCard() {
     tagElement.textContent = tag;
     shareCardTags.appendChild(tagElement);
   });
-
-  if (dominatedItems.length === 0) {
-    const emptyItem = document.createElement("li");
-    emptyItem.className = "share-items-list__empty";
-    emptyItem.textContent = EMPTY_DOMINATED_TEXT;
-    shareCardItems.appendChild(emptyItem);
-  } else {
-    dominatedItems.forEach((item) => {
-      const itemElement = document.createElement("li");
-      itemElement.textContent = item;
-      shareCardItems.appendChild(itemElement);
-    });
-  }
-
-  shareCardItemsMore.textContent = dominatedCount > MAX_DOMINATED_ITEMS
-    ? `还有 ${dominatedCount - MAX_DOMINATED_ITEMS} 项也已制霸`
-    : "";
 }
 
 function updateShareMiniCampusMap() {
@@ -465,31 +456,15 @@ function updateShareMiniCampusMap() {
     return;
   }
 
+  const areaStats = getAreaStats();
   const strongestArea = getStrongestArea();
 
   shareMiniMap.innerHTML = `
-    <div class="share-mini-map__roads" aria-hidden="true">
-      <span class="share-mini-map__road share-mini-map__road--1"></span>
-      <span class="share-mini-map__road share-mini-map__road--2"></span>
-      <span class="share-mini-map__road share-mini-map__road--3"></span>
-      <span class="share-mini-map__road share-mini-map__road--4"></span>
+    <div class="share-mini-map__frame">
+      <div class="share-mini-map__grid">
+        ${areaStats.map((area) => renderMiniNode(area, strongestArea)).join("")}
+      </div>
     </div>
-    ${getAreaStats().map((area) => {
-      const isStrongest = strongestArea && strongestArea.name === area.name;
-
-      return `
-        <article class="share-mini-zone share-mini-zone--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-state="${area.status}">
-          <div class="share-mini-zone__head">
-            <strong>${area.name}</strong>
-            <span>${area.rate}%</span>
-          </div>
-          <p class="share-mini-zone__status">${area.status}</p>
-          <div class="share-mini-zone__progress" aria-hidden="true">
-            <div class="share-mini-zone__progress-fill" style="width: ${area.rate}%"></div>
-          </div>
-        </article>
-      `;
-    }).join("")}
   `;
 }
 
@@ -503,6 +478,7 @@ function updateResult() {
   document.getElementById("titleValue").textContent = result.title;
   document.getElementById("progressFill").style.width = `${result.rate}%`;
   updateCampusMap();
+  updateAreaDetails();
   updateShareCard();
   updateShareMiniCampusMap();
 }
@@ -672,6 +648,7 @@ document.addEventListener("DOMContentLoaded", () => {
   selectedLevels = loadState();
   renderItems();
   renderCampusMap();
+  renderAreaDetails();
   updateResult();
 
   document.getElementById("itemsGrid").addEventListener("click", (event) => {

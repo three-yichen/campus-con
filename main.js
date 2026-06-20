@@ -96,11 +96,22 @@ const DEFAULT_PERSONALITY_TAG = "普通大学生";
 const DOMINATED_LEVEL = 3;
 const MAX_PERSONALITY_TAGS = 3;
 const EMPTY_DOMINATED_TEXT = "还在新手村探索中";
+const EMPTY_STRONGEST_AREA_TEXT = "还在新手村入口";
 const EMPTY_WEAKEST_AREA_TEXT = "还没正式开图";
 const SHARE_IMAGE_FILE_NAME = "campus-conquest-report.png";
 const SHARE_TITLE = "大学生制霸";
 const COPY_SHARE_TITLE = "我的大学生制霸报告";
 const SHARE_SUBTITLE = "一张图看看我的大学副本进度。";
+const POSTER_KICKER = "CAMPUS LIFE REPORT";
+const POSTER_MAP_TITLE = "我的大学生活版图";
+const TITLE_SUMMARIES = {
+  "大学新手村": "刚进校门，地图还很新。",
+  "校园观察员": "校园地图开始亮起来了。",
+  "普通大学生": "普通但不简单，副本正在推进。",
+  "期末周幸存者": "期末周幸存者，正在稳定通关。",
+  "大学生活制霸者": "大学生活制霸者，副本完成度很高。",
+  "校园传说": "校园传说级选手，基本全图点亮。"
+};
 const MAX_LEVEL = Math.max(...LEVELS.map((level) => level.value));
 const MAX_SCORE = ITEMS.length * MAX_LEVEL;
 const THEMES = [
@@ -208,24 +219,8 @@ function pickRandomTheme(excludedId) {
 function applyTheme(theme) {
   currentTheme = theme;
 
-  const rootStyle = document.documentElement.style;
-  rootStyle.setProperty("--theme-bg", theme.bg);
-  rootStyle.setProperty("--theme-paper", theme.paper);
-  rootStyle.setProperty("--theme-ink", theme.ink);
-  rootStyle.setProperty("--theme-muted", theme.muted);
-  rootStyle.setProperty("--theme-accent", theme.accent);
-  rootStyle.setProperty("--theme-accent-soft", theme.accentSoft);
-  rootStyle.setProperty("--theme-button", theme.button);
-  rootStyle.setProperty("--theme-tag", theme.tag);
-  rootStyle.setProperty("--theme-line", "color-mix(in srgb, var(--theme-ink) 16%, transparent)");
-  rootStyle.setProperty("--theme-panel", "color-mix(in srgb, var(--theme-paper) 92%, white 8%)");
-  rootStyle.setProperty("--theme-panel-strong", "color-mix(in srgb, var(--theme-paper) 98%, white 2%)");
-
-  const sharePosterTheme = document.getElementById("sharePosterTheme");
-
-  if (sharePosterTheme) {
-    sharePosterTheme.textContent = `今日皮肤：${theme.name}`;
-  }
+  applyThemeVariables(document.documentElement, theme);
+  renderSharePoster();
 }
 
 function saveTheme(themeId) {
@@ -316,6 +311,10 @@ function getTitleByRate(rate) {
   }, TITLE_RULES[0].title);
 }
 
+function getTitleSummary(title) {
+  return TITLE_SUMMARIES[title] || TITLE_SUMMARIES[TITLE_RULES[0].title];
+}
+
 function getPersonalityTags() {
   return TAG_RULES.map((rule, index) => {
     const score = rule.items.reduce((sum, item) => {
@@ -349,11 +348,6 @@ function getDominatedItemsText() {
   }
 
   return dominatedItems.join("、");
-}
-
-function getPersonalityTagsText() {
-  const tags = getPersonalityTags();
-  return tags.length > 0 ? tags.join(" / ") : DEFAULT_PERSONALITY_TAG;
 }
 
 function getAreaStatus(rate) {
@@ -410,30 +404,133 @@ function escapeHtml(text) {
   });
 }
 
-function getExportTheme() {
-  const theme = currentTheme || THEMES[0];
+function applyThemeVariables(target, theme) {
+  if (!target || !theme) {
+    return;
+  }
+
+  target.style.setProperty("--theme-bg", theme.bg);
+  target.style.setProperty("--theme-paper", theme.paper);
+  target.style.setProperty("--theme-ink", theme.ink);
+  target.style.setProperty("--theme-muted", theme.muted);
+  target.style.setProperty("--theme-accent", theme.accent);
+  target.style.setProperty("--theme-accent-soft", theme.accentSoft);
+  target.style.setProperty("--theme-button", theme.button);
+  target.style.setProperty("--theme-tag", theme.tag);
+  target.style.setProperty("--theme-line", "rgba(31, 49, 49, 0.16)");
+  target.style.setProperty("--theme-panel", theme.paper);
+  target.style.setProperty("--theme-panel-strong", theme.paper);
+}
+
+function getPosterData() {
+  const result = getCurrentResult();
+  const personalityTags = getPersonalityTags();
+  const strongestArea = getStrongestArea();
+  const weakestArea = getWeakestArea();
+  const areaStats = getAreaStats();
 
   return {
-    paper: theme.paper || "#fffaf0",
-    ink: theme.ink || "#1f3131",
-    muted: theme.muted || "#5d6b67",
-    accent: theme.accent || "#d45a3c",
-    button: theme.button || "#355d42",
-    tag: theme.tag || "#f4efc8",
-    themeName: theme.name || ""
+    rate: result.rate,
+    checkedCount: result.checkedCount,
+    title: result.title,
+    titleSummary: getTitleSummary(result.title),
+    personalityTags: personalityTags.length > 0 ? personalityTags : [DEFAULT_PERSONALITY_TAG],
+    strongestArea,
+    weakestArea,
+    themeName: (currentTheme || THEMES[0]).name,
+    areaStats,
+    footerText: FOOTER_TEXT
   };
 }
 
-function getExportMapColor(tone) {
-  const colorMap = {
-    empty: "#d8d4ca",
-    low: "#efe2a2",
-    mid: "#e6bb64",
-    high: "#92b98c",
-    peak: "#4f7a4e"
-  };
+function getPosterAreaText(area, fallbackText) {
+  return area ? `${area.name} ${area.rate}%` : fallbackText;
+}
 
-  return colorMap[tone] || colorMap.empty;
+function renderPosterMapMarkup(data) {
+  return `
+    <div class="poster-map" aria-label="${POSTER_MAP_TITLE}">
+      <div class="poster-map__grid">
+        ${data.areaStats.map((area) => {
+          const isStrongest = data.strongestArea && data.strongestArea.name === area.name;
+
+          return `
+            <article class="poster-map__node poster-map__node--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-tone="${area.tone}">
+              <strong class="poster-map__name">${escapeHtml(area.name)}</strong>
+              <span class="poster-map__rate">${area.rate}%</span>
+              ${isStrongest ? '<span class="poster-map__badge">最强</span>' : ""}
+            </article>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderPosterMarkup(data, mode) {
+  const titleIdAttribute = mode === "preview" ? ' id="shareTitle"' : "";
+
+  return `
+    <article class="share-poster share-poster--${mode}" aria-label="分享结果卡片">
+      <div class="share-poster__top">
+        <p class="share-poster__kicker">${POSTER_KICKER}</p>
+        <h2${titleIdAttribute}>${SHARE_TITLE}</h2>
+        <p class="share-poster__subtitle">${SHARE_SUBTITLE}</p>
+      </div>
+
+      <div class="share-poster__hero">
+        <div class="share-poster__metric">
+          <span class="share-poster__label">制霸率</span>
+          <strong class="share-poster__rate">${data.rate}%</strong>
+          <p class="share-poster__meta">${data.checkedCount}/${ITEMS.length} 项已点亮</p>
+        </div>
+        <div class="share-poster__title-box">
+          <span class="share-poster__label">称号</span>
+          <strong>${escapeHtml(data.title)}</strong>
+        </div>
+      </div>
+
+      <p class="share-poster__summary">${escapeHtml(data.titleSummary)}</p>
+
+      <section class="share-poster__section">
+        <div class="share-poster__section-head">
+          <h3>${POSTER_MAP_TITLE}</h3>
+        </div>
+        ${renderPosterMapMarkup(data)}
+      </section>
+
+      <section class="share-poster__section share-poster__section--tags">
+        <h3>人格标签</h3>
+        <div class="share-tags">
+          ${data.personalityTags.map((tag) => `<span class="share-tag">${escapeHtml(tag)}</span>`).join("")}
+        </div>
+      </section>
+
+      <div class="share-poster__pill-row">
+        <div class="share-poster__pill-card">
+          <h3>最强副本</h3>
+          <p class="share-strongest-area share-strongest-area--title">${escapeHtml(getPosterAreaText(data.strongestArea, EMPTY_STRONGEST_AREA_TEXT))}</p>
+        </div>
+        <div class="share-poster__pill-card">
+          <h3>待通关副本</h3>
+          <p class="share-strongest-area">${escapeHtml(getPosterAreaText(data.weakestArea, EMPTY_WEAKEST_AREA_TEXT))}</p>
+        </div>
+      </div>
+
+      <p class="share-poster__theme">皮肤：${escapeHtml(data.themeName)}</p>
+      <p class="share-poster__footer">${escapeHtml(data.footerText)}</p>
+    </article>
+  `;
+}
+
+function renderSharePoster() {
+  const sharePosterContainer = document.getElementById("sharePosterContainer");
+
+  if (!sharePosterContainer) {
+    return;
+  }
+
+  sharePosterContainer.innerHTML = renderPosterMarkup(getPosterData(), "preview");
 }
 
 function getItemVisualState(item) {
@@ -538,21 +635,11 @@ function getWeakestArea() {
 }
 
 function getPreferredExpandedAreaName(areaStats) {
-  if (expandedAreaName === "") {
-    return "";
-  }
-
   if (expandedAreaName && areaStats.some((area) => area.name === expandedAreaName)) {
     return expandedAreaName;
   }
 
-  const strongestArea = getStrongestArea();
-
-  if (strongestArea) {
-    return strongestArea.name;
-  }
-
-  return areaStats[0] ? areaStats[0].name : "";
+  return null;
 }
 
 function renderAreaChips(items) {
@@ -584,17 +671,6 @@ function renderCampusNode(area, strongestArea) {
         <span style="width: ${area.rate}%"></span>
       </div>
       <p class="campus-node__status">${area.status}</p>
-    </article>
-  `;
-}
-
-function renderMiniNode(area, strongestArea) {
-  const isStrongest = strongestArea && strongestArea.name === area.name;
-
-  return `
-    <article class="mini-route-node mini-route-node--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-tone="${area.tone}">
-      <strong>${area.name}</strong>
-      <span>${area.rate}%</span>
     </article>
   `;
 }
@@ -663,7 +739,7 @@ function renderAreaDetails() {
   areaDetails.querySelectorAll(".area-detail-card").forEach((detail) => {
     detail.addEventListener("toggle", () => {
       if (detail.open) {
-        expandedAreaName = detail.dataset.areaName || "";
+        expandedAreaName = detail.dataset.areaName || null;
 
         areaDetails.querySelectorAll(".area-detail-card[open]").forEach((openDetail) => {
           if (openDetail !== detail) {
@@ -675,7 +751,7 @@ function renderAreaDetails() {
       }
 
       if ((detail.dataset.areaName || "") === expandedAreaName) {
-        expandedAreaName = "";
+        expandedAreaName = null;
       }
     });
   });
@@ -683,70 +759,6 @@ function renderAreaDetails() {
 
 function updateAreaDetails() {
   renderAreaDetails();
-}
-
-function updateShareCard() {
-  const shareCardRate = document.getElementById("shareCardRate");
-  const shareCardTitle = document.getElementById("shareCardTitle");
-  const shareCardTags = document.getElementById("shareCardTags");
-  const shareCardStrongestArea = document.getElementById("shareCardStrongestArea");
-  const shareCardWeakestArea = document.getElementById("shareCardWeakestArea");
-  const sharePosterMeta = document.getElementById("sharePosterMeta");
-
-  if (!shareCardRate || !shareCardTitle || !shareCardTags || !shareCardStrongestArea || !shareCardWeakestArea || !sharePosterMeta) {
-    return;
-  }
-
-  const result = getCurrentResult();
-  const tags = getPersonalityTags();
-  const displayTags = tags.length > 0 ? tags : [DEFAULT_PERSONALITY_TAG];
-  const strongestArea = getStrongestArea();
-  const weakestArea = getWeakestArea();
-  const shareTitle = document.getElementById("shareTitle");
-  const shareSubtitle = document.querySelector(".share-poster__subtitle");
-
-  shareCardRate.textContent = `${result.rate}%`;
-  shareCardTitle.textContent = result.title;
-  if (shareTitle) {
-    shareTitle.textContent = SHARE_TITLE;
-  }
-  if (shareSubtitle) {
-    shareSubtitle.textContent = SHARE_SUBTITLE;
-  }
-  shareCardStrongestArea.textContent = strongestArea
-    ? `${strongestArea.name} ${strongestArea.rate}%`
-    : "还在新手村入口";
-  shareCardWeakestArea.textContent = weakestArea
-    ? `${weakestArea.name} ${weakestArea.rate}%`
-    : EMPTY_WEAKEST_AREA_TEXT;
-  shareCardTags.innerHTML = "";
-  sharePosterMeta.textContent = `${result.checkedCount}/${ITEMS.length} 项已点亮`;
-
-  displayTags.forEach((tag) => {
-    const tagElement = document.createElement("span");
-    tagElement.className = "share-tag";
-    tagElement.textContent = tag;
-    shareCardTags.appendChild(tagElement);
-  });
-}
-
-function updateShareMiniCampusMap() {
-  const shareMiniMap = document.getElementById("shareMiniMap");
-
-  if (!shareMiniMap) {
-    return;
-  }
-
-  const areaStats = getAreaStats();
-  const strongestArea = getStrongestArea();
-
-  shareMiniMap.innerHTML = `
-    <div class="share-mini-map__frame">
-      <div class="share-mini-map__grid">
-        ${areaStats.map((area) => renderMiniNode(area, strongestArea)).join("")}
-      </div>
-    </div>
-  `;
 }
 
 function updateResult() {
@@ -757,11 +769,11 @@ function updateResult() {
   document.getElementById("checkedValue").textContent = `${result.checkedCount}/${ITEMS.length}`;
   document.getElementById("rateValue").textContent = `${result.rate}%`;
   document.getElementById("titleValue").textContent = result.title;
+  document.getElementById("resultSummary").textContent = getTitleSummary(result.title);
   document.getElementById("progressFill").style.width = `${result.rate}%`;
   updateCampusMap();
   updateAreaDetails();
-  updateShareCard();
-  updateShareMiniCampusMap();
+  renderSharePoster();
 }
 
 function saveState() {
@@ -805,17 +817,8 @@ function resetState() {
 }
 
 function copyShareText() {
-  const rate = document.getElementById("rateValue").textContent;
-  const title = document.getElementById("titleValue").textContent;
-  const strongestArea = getStrongestArea();
-  const weakestArea = getWeakestArea();
-  const strongestAreaText = strongestArea
-    ? `${strongestArea.name} ${strongestArea.rate}%`
-    : "还在新手村入口";
-  const weakestAreaText = weakestArea
-    ? `${weakestArea.name} ${weakestArea.rate}%`
-    : EMPTY_WEAKEST_AREA_TEXT;
-  const shareText = `${COPY_SHARE_TITLE}\n制霸率：${rate}\n称号：${title}\n人格标签：${getPersonalityTagsText()}\n最强副本：${strongestAreaText}\n待通关副本：${weakestAreaText}\n深度体验项目：${getDominatedItemsText()}\n今日皮肤：${currentTheme.name}\n${FOOTER_TEXT}`;
+  const posterData = getPosterData();
+  const shareText = `${COPY_SHARE_TITLE}\n制霸率：${posterData.rate}%\n称号：${posterData.title}\n人格标签：${posterData.personalityTags.join(" / ")}\n最强副本：${getPosterAreaText(posterData.strongestArea, EMPTY_STRONGEST_AREA_TEXT)}\n待通关副本：${getPosterAreaText(posterData.weakestArea, EMPTY_WEAKEST_AREA_TEXT)}\n深度体验项目：${getDominatedItemsText()}\n皮肤：${posterData.themeName}\n${posterData.footerText}`;
 
   if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
     navigator.clipboard.writeText(shareText)
@@ -869,19 +872,7 @@ function copyShareTextFallback(text, successMessage, failureMessage) {
 }
 
 function createExportPoster() {
-  const exportTheme = getExportTheme();
-  const result = getCurrentResult();
-  const strongestArea = getStrongestArea();
-  const weakestArea = getWeakestArea();
-  const areaStats = getAreaStats();
-  const displayTags = getPersonalityTags();
-  const tags = displayTags.length > 0 ? displayTags : [DEFAULT_PERSONALITY_TAG];
-  const strongestAreaText = strongestArea
-    ? `${strongestArea.name} ${strongestArea.rate}%`
-    : "还在新手村入口";
-  const weakestAreaText = weakestArea
-    ? `${weakestArea.name} ${weakestArea.rate}%`
-    : EMPTY_WEAKEST_AREA_TEXT;
+  const posterData = getPosterData();
   const exportPoster = document.createElement("div");
 
   exportPoster.className = "export-poster";
@@ -890,82 +881,8 @@ function createExportPoster() {
   exportPoster.style.left = "-9999px";
   exportPoster.style.top = "0";
   exportPoster.style.width = "720px";
-  exportPoster.style.boxSizing = "border-box";
-  exportPoster.style.padding = "36px";
-  exportPoster.style.background = exportTheme.paper;
-  exportPoster.style.color = exportTheme.ink;
-  exportPoster.style.fontFamily = "\"PingFang SC\", \"Microsoft YaHei\", sans-serif";
-  exportPoster.style.lineHeight = "1.4";
-
-  exportPoster.innerHTML = `
-    <div style="border:1px solid ${exportTheme.muted}; padding:32px; background:${exportTheme.paper}; box-sizing:border-box;">
-      <div style="margin-bottom:24px;">
-        <p style="margin:0 0 8px; font-size:14px; letter-spacing:1.8px; text-transform:uppercase; color:${exportTheme.muted};">CAMPUS LIFE REPORT</p>
-        <h1 style="margin:0; font-size:36px; line-height:1.15; color:${exportTheme.ink};">${escapeHtml(SHARE_TITLE)}</h1>
-        <p style="margin:10px 0 0; font-size:16px; color:${exportTheme.muted};">${escapeHtml(SHARE_SUBTITLE)}</p>
-      </div>
-      <div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:16px; margin-bottom:20px;">
-        <div style="border:1px solid ${exportTheme.muted}; padding:20px; background:${exportTheme.paper};">
-          <p style="margin:0 0 8px; font-size:13px; color:${exportTheme.muted};">制霸率</p>
-          <p style="margin:0; font-size:52px; line-height:1; color:${exportTheme.accent}; font-weight:700;">${result.rate}%</p>
-          <p style="margin:12px 0 0; font-size:15px; color:${exportTheme.ink};">${result.checkedCount}/${ITEMS.length} 项已点亮</p>
-        </div>
-        <div style="border:1px solid ${exportTheme.muted}; padding:20px; background:${exportTheme.tag};">
-          <p style="margin:0 0 8px; font-size:13px; color:${exportTheme.muted};">称号</p>
-          <p style="margin:0; font-size:28px; line-height:1.2; color:${exportTheme.ink}; font-weight:700;">${escapeHtml(result.title)}</p>
-        </div>
-      </div>
-      <div style="margin-bottom:20px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-          <h2 style="margin:0; font-size:20px; color:${exportTheme.ink};">大学生活版图</h2>
-          <p style="margin:0; font-size:12px; color:${exportTheme.muted};">7 区进度总览</p>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px;">
-          ${areaStats.map((area) => {
-            const isStrongest = strongestArea && strongestArea.name === area.name;
-            const borderColor = isStrongest ? "#d45a3c" : exportTheme.muted;
-            const badgeHtml = isStrongest
-              ? `<span style="display:inline-block; margin-top:6px; padding:2px 6px; font-size:11px; line-height:1.2; color:#ffffff; background:#d45a3c;">最强</span>`
-              : "";
-
-            return `
-              <div style="min-height:92px; box-sizing:border-box; border:2px solid ${borderColor}; padding:10px; background:${getExportMapColor(area.tone)}; color:${area.tone === "peak" ? "#ffffff" : exportTheme.ink};">
-                <div style="font-size:15px; font-weight:700;">${escapeHtml(area.name)}</div>
-                <div style="margin-top:8px; font-size:24px; font-weight:700;">${area.rate}%</div>
-                ${badgeHtml}
-              </div>
-            `;
-          }).join("")}
-        </div>
-      </div>
-      <div style="margin-bottom:20px;">
-        <h2 style="margin:0 0 10px; font-size:20px; color:${exportTheme.ink};">人格标签</h2>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          ${tags.map((tag) => `
-            <span style="display:inline-block; padding:7px 12px; border:1px solid ${exportTheme.muted}; background:${exportTheme.tag}; color:${exportTheme.ink}; font-size:14px;">
-              ${escapeHtml(tag)}
-            </span>
-          `).join("")}
-        </div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
-        <div style="border:1px solid ${exportTheme.muted}; padding:16px;">
-          <p style="margin:0 0 6px; font-size:13px; color:${exportTheme.muted};">最强副本</p>
-          <p style="margin:0; font-size:22px; line-height:1.3; color:${exportTheme.ink}; font-weight:700;">${escapeHtml(strongestAreaText)}</p>
-        </div>
-        <div style="border:1px solid ${exportTheme.muted}; padding:16px;">
-          <p style="margin:0 0 6px; font-size:13px; color:${exportTheme.muted};">待通关副本</p>
-          <p style="margin:0; font-size:22px; line-height:1.3; color:${exportTheme.ink}; font-weight:700;">${escapeHtml(weakestAreaText)}</p>
-        </div>
-      </div>
-      <p style="margin:0 0 18px; font-size:12px; color:${exportTheme.muted}; text-align:right;">
-        今日皮肤：<span style="color:${exportTheme.ink}; font-weight:700;">${escapeHtml(exportTheme.themeName)}</span>
-      </p>
-      <p style="margin:0; padding-top:16px; border-top:1px solid ${exportTheme.muted}; font-size:14px; color:${exportTheme.muted};">
-        ${escapeHtml(FOOTER_TEXT)}
-      </p>
-    </div>
-  `;
+  applyThemeVariables(exportPoster, currentTheme || THEMES[0]);
+  exportPoster.innerHTML = renderPosterMarkup(posterData, "export");
 
   return exportPoster;
 }
@@ -981,7 +898,7 @@ function downloadShareImage() {
   document.body.appendChild(exportPoster);
 
   window.html2canvas(exportPoster, {
-    backgroundColor: currentTheme && currentTheme.paper ? currentTheme.paper : "#fffaf0",
+    backgroundColor: currentTheme && currentTheme.bg ? currentTheme.bg : "#f6f0dd",
     scale: 2,
     useCORS: false,
     allowTaint: true,
@@ -1041,8 +958,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeTheme();
   selectedLevels = loadState();
   renderItems();
-  renderCampusMap();
-  renderAreaDetails();
   updateResult();
 
   document.getElementById("itemsGrid").addEventListener("click", (event) => {

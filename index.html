@@ -20,6 +20,7 @@
           <span class="result-label">当前制霸率</span>
           <strong class="rate-value" id="rateValue">0%</strong>
           <p class="title-line">称号：<span id="titleValue">大学新手村</span></p>
+          <p class="result-summary" id="resultSummary">刚进校门，地图还很新。</p>
         </div>
 
         <div class="progress-track" aria-hidden="true">
@@ -64,66 +65,14 @@
       <div class="section-head">
         <div class="section-head__copy">
           <h2 id="itemsTitle">大学生活项目</h2>
-          <p class="items-level-legend">0 没经历｜1 浅尝一下｜2 正在经历｜3 深度体验｜4 刻进 DNA</p>
+          <p class="items-level-legend">等级说明：0 没经历｜1 浅尝一下｜2 正在经历｜3 深度体验｜4 刻进 DNA</p>
         </div>
       </div>
       <div class="items-grid" id="itemsGrid"></div>
     </section>
 
     <section class="share-section" aria-labelledby="shareTitle">
-      <article class="share-poster" aria-label="分享结果卡片">
-        <div class="share-poster__top">
-          <p class="share-poster__kicker">Campus Life Report</p>
-          <h2 id="shareTitle">大学生制霸</h2>
-          <p class="share-poster__subtitle">一张图看看我的大学副本进度。</p>
-        </div>
-
-        <div class="share-poster__hero">
-          <div>
-            <span class="share-poster__label">制霸率</span>
-            <strong class="share-poster__rate" id="shareCardRate">0%</strong>
-            <p class="share-poster__meta" id="sharePosterMeta">0/30 项已点亮</p>
-          </div>
-          <div class="share-poster__title-box">
-            <span class="share-poster__label">称号</span>
-            <strong id="shareCardTitle">大学新手村</strong>
-          </div>
-        </div>
-
-        <div class="share-poster__block share-poster__block--mini-map">
-          <div class="share-poster__mini-map-head">
-            <h3>大学生活版图</h3>
-            <p>7 区进度总览</p>
-          </div>
-          <div class="share-mini-map" id="shareMiniMap" aria-label="分享卡片大学生活版图"></div>
-        </div>
-
-        <div class="share-poster__cluster">
-          <div class="share-poster__block share-poster__block--tags">
-            <h3>人格标签</h3>
-            <div class="share-tags" id="shareCardTags">
-              <span class="share-tag">普通大学生</span>
-            </div>
-          </div>
-
-          <div class="share-poster__pill-row">
-            <div class="share-poster__pill-card">
-              <h3>最强副本</h3>
-              <p class="share-strongest-area share-strongest-area--title" id="shareCardStrongestArea">还在新手村入口</p>
-            </div>
-
-            <div class="share-poster__pill-card">
-              <h3>待通关副本</h3>
-              <p class="share-strongest-area" id="shareCardWeakestArea">还没正式开图</p>
-            </div>
-          </div>
-        </div>
-
-        <p class="share-poster__theme" id="sharePosterTheme">今日皮肤：期末周奶黄</p>
-        <p class="share-poster__footer">
-          不是所有人都能绩点制霸，但每个人都可以期末周幸存。
-        </p>
-      </article>
+      <div id="sharePosterContainer"></div>
     </section>
 
     <footer class="page-footer">

@@ -104,6 +104,10 @@ const COPY_SHARE_TITLE = "我的大学生制霸报告";
 const SHARE_SUBTITLE = "一张图看看我的大学副本进度。";
 const POSTER_KICKER = "CAMPUS LIFE REPORT";
 const POSTER_MAP_TITLE = "我的大学生活版图";
+const MOBILE_AREA_DISPLAY_NAMES = {
+  食堂生活区: "生活区",
+  支线任务: "支线"
+};
 const TITLE_SUMMARIES = {
   "大学新手村": "刚进校门，地图还很新。",
   "校园观察员": "校园地图开始亮起来了。",
@@ -447,7 +451,24 @@ function getPosterAreaText(area, fallbackText) {
   return area ? `${area.name} ${area.rate}%` : fallbackText;
 }
 
-function renderPosterMapMarkup(data) {
+function getMobileAreaDisplayName(areaName) {
+  return MOBILE_AREA_DISPLAY_NAMES[areaName] || areaName;
+}
+
+function renderAreaNameMarkup(areaName, textClass) {
+  const mobileDisplayName = getMobileAreaDisplayName(areaName);
+
+  if (mobileDisplayName === areaName) {
+    return `<span class="${textClass}">${escapeHtml(areaName)}</span>`;
+  }
+
+  return `
+    <span class="${textClass} ${textClass}--full">${escapeHtml(areaName)}</span>
+    <span class="${textClass} ${textClass}--mobile">${escapeHtml(mobileDisplayName)}</span>
+  `;
+}
+
+function renderPosterMapMarkup(data, mode) {
   return `
     <div class="poster-map" aria-label="${POSTER_MAP_TITLE}">
       <div class="poster-map__grid">
@@ -456,7 +477,7 @@ function renderPosterMapMarkup(data) {
 
           return `
             <article class="poster-map__node poster-map__node--${area.index + 1}${isStrongest ? " is-strongest" : ""}" data-tone="${area.tone}">
-              <strong class="poster-map__name">${escapeHtml(area.name)}</strong>
+              <strong class="poster-map__name">${renderAreaNameMarkup(area.name, "poster-map__name-text")}</strong>
               <span class="poster-map__rate">${area.rate}%</span>
               ${isStrongest ? '<span class="poster-map__badge">最强</span>' : ""}
             </article>
@@ -496,7 +517,7 @@ function renderPosterMarkup(data, mode) {
         <div class="share-poster__section-head">
           <h3>${POSTER_MAP_TITLE}</h3>
         </div>
-        ${renderPosterMapMarkup(data)}
+        ${renderPosterMapMarkup(data, mode)}
       </section>
 
       <section class="share-poster__section share-poster__section--tags">
@@ -665,7 +686,7 @@ function renderCampusNode(area, strongestArea) {
         <span class="campus-node__badge">区域 ${area.index + 1}</span>
         <span class="campus-node__rate">${area.rate}%</span>
       </div>
-      <h3>${area.name}</h3>
+      <h3>${renderAreaNameMarkup(area.name, "campus-node__name-text")}</h3>
       <p class="campus-node__meta">${area.clearedCount}/${area.items.length} 项已点亮</p>
       <div class="campus-node__progress" aria-label="${area.status}">
         <span style="width: ${area.rate}%"></span>

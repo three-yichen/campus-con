@@ -710,6 +710,18 @@ h1 {
   margin: 0 0 6px;
   font-size: 21px;
   line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.campus-node__name-text,
+.poster-map__name-text {
+  display: block;
+}
+
+.campus-node__name-text--mobile,
+.poster-map__name-text--mobile {
+  display: none;
 }
 
 .campus-node__meta {
@@ -772,6 +784,8 @@ h1 {
 .poster-map__name {
   font-size: 12px;
   line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .poster-map__rate {
@@ -1422,6 +1436,30 @@ h2 {
     line-height: 1.2;
   }
 
+  .share-poster--preview .poster-map__grid {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .share-poster--preview .poster-map__node {
+    padding: 8px 8px 7px;
+  }
+
+  .share-poster--preview .poster-map__name {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  .campus-node__name-text--full,
+  .share-poster--preview .poster-map__name-text--full {
+    display: none;
+  }
+
+  .campus-node__name-text--mobile,
+  .share-poster--preview .poster-map__name-text--mobile {
+    display: block;
+  }
+
   .area-detail-card__summary {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -1560,6 +1598,14 @@ h2 {
 
   .campus-node h3 {
     font-size: 14px;
+  }
+
+  .share-poster--preview .poster-map__name {
+    font-size: 10px;
+  }
+
+  .share-poster--preview .poster-map__rate {
+    font-size: 9px;
   }
 }
 
